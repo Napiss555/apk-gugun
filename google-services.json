@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "123073055738",
+    "firebase_url": "https://zenn-somware-v2-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "zenn-somware-v2",
+    "storage_bucket": "zenn-somware-v2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123073055738:android:231eba867b4dc7bca3f243",
+        "android_client_info": {
+          "package_name": "com.bug.gugun"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5q79PzcqGBsL8rL9pGioioc2t-ViAZo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
