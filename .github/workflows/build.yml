@@ -29,11 +29,14 @@ jobs:
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1
     
-    - name: Generate Gradle Wrapper
-      run: gradle wrapper --gradle-version 8.2
+    - name: Download Gradle 8.2
+      run: |
+        wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
+        unzip -q gradle-8.2-bin.zip
+        echo "$PWD/gradle-8.2/bin" >> $GITHUB_PATH
     
     - name: Build APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: gradle assembleDebug --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
