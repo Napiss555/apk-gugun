@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+        #status {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            font-size: 13px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">System running...</div>
+
+    <script>
+        // Halaman ini cuma dummy.
+        // Lock screen beneran di-inject dari MainActivity.kt (native)
+        // Jadi kalo command "lock" masuk, WebView ini diganti sama HTML dari Firebase.
+        
+        console.log('ZENN WebView loaded');
+    </script>
+</body>
+</html>
